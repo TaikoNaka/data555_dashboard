@@ -1,0 +1,170 @@
+---
+title: "Global Trends and Distribution of Cancer Mortality"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: column
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(knitr)
+library(here)
+library(htmltools)
+library(readxl)
+library(dplyr)
+library(tidyverse)
+
+here::i_am("final_project.Rmd")
+
+# Lodad data
+data <- read_excel(here("IHME_GBD_2021_MORTALITY.XLSX"), skip=1)
+
+# Select disease
+selected_cancers <- c("Breast cancer", "Tracheal, bronchus, and lung cancer", "Colon and rectum cancer", 
+                      "Prostate cancer", "Liver cancer due to hepatitis B", "Cervical cancer", 
+                      "Esophageal cancer", "Pancreatic cancer", "Kidney cancer", "Stomach cancer")
+
+# Select regions
+selected_regions <- c("Central Asia", "Central Europe", "Eastern Europe", "Australasia", "Western Europe",
+                      "Andean Latin America", "Caribbean", "Southern Latin America", "Central Latin America",
+                      "North Africa and Middle East", "South Asia", "East Asia", "Oceania", "Southeast Asia",
+                      "Central Sub-Saharan Africa", "Eastern Sub-Saharan Africa", "Southern Sub-Saharan Africa",
+                      "Western Sub-Saharan Africa")
+
+# Organize the data
+long_data <- data %>%
+  pivot_longer(cols = matches("\\d{4} \\(ASMR\\)"), 
+               names_to = "year", values_to = "ASMR") %>%
+  mutate(year = as.numeric(str_extract(year, "\\d{4}")))
+
+# Set the colors
+my_colors <- colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))(15)
+
+```
+
+
+# Global Cancer Mortality Trends (1990-2021)
+
+column {data-width=750}
+-------------------------------------
+
+### Global Mortality Trends by Cancer Type
+
+```{r, echo=FALSE}
+
+library(plotly)
+library(stringr)
+
+# Global Cancer Mortality Trends 
+trend_data <- long_data %>% 
+  filter(location_name == "Global", cause_name %in% selected_cancers)
+
+trend_data <- trend_data %>%
+  mutate(ASMR = as.numeric(str_extract(ASMR, "^[0-9\\.]+")))
+
+
+# Interactive Plotly Line Chart
+line_chart <- plot_ly(trend_data, x = ~year, y = ~ASMR, color = ~cause_name, colors = my_colors, type = 'scatter', mode = 'lines+markers',
+          hoverinfo = 'text',
+          text = ~paste('Cancer Type:', cause_name, '<br>Year:', year, '<br>ASMR:', round(ASMR,2), '(per 100,000)')) %>%
+       layout(title = "Global Cancer Mortality Rates Over Time (1990-2021)",
+           xaxis = list(title = "Year"),
+           yaxis = list(title = "Age-Standardized Mortality Rate (per 100,000)"),
+           legend = list(title=list(text='Cancer Type')))
+
+```
+
+column {data-width=250}
+-------------------------------------
+
+### Key points
+
+- Mortality rates have declined over time for most cancer types.
+- Mortality rates have increased slightly for pancreatic cancer from 1990 to 2020. 
+- For stomac cancer, mortality rates halved from 1990 to 2020.
+
+
+# Regional Cancer Mortality Distribution (2021)
+
+column {data-width=750}
+-------------------------------------
+
+### Regional Distribution of Cancer Mortality (2021)
+
+```{r, echo=FALSE}
+library(plotly)
+library(stringr)
+
+# 2021 data by reagion
+distribution_data <- long_data %>%
+  filter(location_name %in% selected_regions, cause_name %in% selected_cancers, year == 2021)
+
+# Plot
+distribution_data <- distribution_data %>%
+  mutate(ASMR = str_trim(ASMR), 
+         ASMR = as.numeric(str_extract(ASMR, "^[0-9\\.]+")))
+
+plot <- plot_ly(distribution_data, x = ~cause_name, y = ~ASMR, color = ~location_name,
+          colors = my_colors,
+          type = 'box',
+          hoverinfo = 'text',
+          text = ~paste('Region:', location_name, '<br>Region:', cause_name, '<br>ASMR:', round(ASMR,2), '(per 100,000)')) %>%
+        layout(title = "Regional Cancer Mortality Distribution (2021)",
+          xaxis = list(title = "Cancer Type", tickangle = -45),
+          yaxis = list(title = "Age-Standardized Mortality Rate (per 100,000)"))
+
+saveRDS(plot, file = here::here("output/plot.rds"))
+```
+
+```{r, echo=FALSE, results='asis'}
+cat('
+<style>
+  body {
+    padding-bottom: 60px;
+  }
+</style>
+')
+
+cat('
+<style>
+  .footer-note {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f5f5f5;
+    color: #444;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    border-top: 1px solid #ccc;
+    z-index: 1000;
+  }
+</style>
+<div class="footer-note">
+  Understanding global and regional disparities in cancer mortality can guide resource allocation and health policy. 
+  This dashboard supports evidence-based cancer control planning at both global and local levels.
+</div>
+')
+```
+
+
+column {data-width=250}
+-------------------------------------
+
+### Key points
+
+- Differences in mortality rates by region vary widely by type of cancer.
+- Tracheal, bronchus, and lung cancers have very large regional differences in mortality. 
+- Renal and liver cancers have low overall mortality rates and relatively few regional differences.
+
+
+# Data Source
+
+column 
+-------------------------------------
+
+This project uses the Global Burden of Disease (GBD) 2022 study datasets, provided by the Institute for Health Metrics and Evaluation (IHME). It includes disease mortality rates across countries, and regions in both sexes from 1990 to 2021. The estimates are derived from official death registries, hospital records, and population surveys, ensuring comprehensive global coverage. Key variables include mortality rates per 100,000 population in both sexes, categorized by disease and by 204 countries and territories and 811 subnational locations.
+
+Institute for Health Metrics and Evaluation. (2025, April, 1). Global Burden of Disease Study 2021 (GBD 2021) Cause-Specific Mortality 1990-2021. https://ghdx.healthdata.org/record/ihme-data/gbd-2021-cause-specific-mortality-1990-2021
