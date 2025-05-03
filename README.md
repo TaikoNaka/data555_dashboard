@@ -7,6 +7,8 @@ This project uses the Global Burden of Disease study 2021 (GBD 2021) datasets to
 
 ## Dashboard link
 
+[Dashboard] (https://taikonaka.github.io/data555_dashboard/)
+
 ## Files inclusded
 - index.Rmd – Source code for the dashboard (written in R Markdown).
 - index.html – Compiled dashboard, viewable through GitHub Pages.
