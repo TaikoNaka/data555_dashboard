@@ -168,3 +168,6 @@ column
 This project uses the Global Burden of Disease (GBD) 2022 study datasets, provided by the Institute for Health Metrics and Evaluation (IHME). It includes disease mortality rates across countries, and regions in both sexes from 1990 to 2021. The estimates are derived from official death registries, hospital records, and population surveys, ensuring comprehensive global coverage. Key variables include mortality rates per 100,000 population in both sexes, categorized by disease and by 204 countries and territories and 811 subnational locations.
 
 Institute for Health Metrics and Evaluation. (2025, April, 1). Global Burden of Disease Study 2021 (GBD 2021) Cause-Specific Mortality 1990-2021. https://ghdx.healthdata.org/record/ihme-data/gbd-2021-cause-specific-mortality-1990-2021
+
+The full source code is embedded in this document and available for review. 
+View project source code on [GitHub](https://github.com/TaikoNaka/data555_dashboard)
